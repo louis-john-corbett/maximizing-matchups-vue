@@ -1,7 +1,7 @@
 <template>
     <div class="player">
         <p>
-            <span class="name" v-bind:class="position">{{player.name_display_first_last}} ({{player.position}})<button @click="$emit('del-player', player.player_id)" class="del">x</button></span>
+            <span class="name" v-bind:class="position">{{player.name_display_first_last}} ({{player.position}})<button @click="$emit('del-player', player)" class="del">x</button></span>
             <span class="team" v-text="player.team_full"></span>
         </p>
     </div>

@@ -1,161 +1,238 @@
 <template>
   <div class="home">
     <PlayerSearch v-bind:players="players" v-on:add-player="addPlayer" />
-    <BatterMatchups v-bind:batterMatchups="batterMatchups" />
-    <PitcherMatchups v-bind:pitcherMatchups="pitcherMatchups" />
+    <BatterMatchups v-bind:matchups="matchups" />
+    <PitcherMatchups v-bind:matchups="matchups" />
     <PlayerList v-bind:players="players" v-on:del-player="deletePlayer" />
+    <OtherMatchups v-bind:matchups="matchups" />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import PlayerSearch from '@/components/PlayerSearch.vue'
-import PlayerList from '@/components/PlayerList.vue'
-import BatterMatchups from '@/components/BatterMatchups.vue'
-import PitcherMatchups from '@/components/PitcherMatchups.vue'
-import Axios from 'axios'
+import PlayerSearch from "@/components/PlayerSearch.vue";
+import PlayerList from "@/components/PlayerList.vue";
+import BatterMatchups from "@/components/BatterMatchups.vue";
+import PitcherMatchups from "@/components/PitcherMatchups.vue";
+import OtherMatchups from "@/components/OtherMatchups.vue";
+import Axios from "axios";
+
+const mlbApiBaseRoute = "https://statsapi.mlb.com";
 
 export default {
-  name: 'home',
+  name: "home",
   components: {
     PlayerSearch,
     PlayerList,
     BatterMatchups,
-    PitcherMatchups
+    PitcherMatchups,
+    OtherMatchups
   },
   data() {
     return {
-      teams: [],
       games: [],
-      probableStarters: [],
       players: [],
-      batters: [],
-      pitchers: [],
-      batterMatchups: [],
-      pitcherMatchups: []
-    }
+      matchups: []
+    };
   },
   methods: {
-    deletePlayer(id){
-      this.players = this.players.filter(player => player.player_id !== id);
-      this.batters = this.batters.filter(player => player.player_id !== id);
-      this.pitchers = this.pitchers.filter(player => player.player_id !== id);
-      this.batterMatchups = this.batterMatchups.filter(matchup => matchup.batter.player_id !== id);
-      this.pitcherMatchups = this.pitcherMatchups.filter(matchup => matchup.pitcher.id !== id);
+    deletePlayer(player) {
+      this.players = this.players.filter(p => p.player_id !== player.player_id);
+
+      if (player.position == "P") {
+        this.matchups = this.matchups.map(matchup => {
+          if (matchup.pitcher.id === player.player_id) {
+            return Object.assign({}, matchup, { myPitcher: false });
+          }
+          return matchup;
+        });
+      } else {
+        this.matchups = this.matchups.map(matchup => {
+          if (matchup.batter.id === player.player_id) {
+            return Object.assign({}, matchup, { myBatter: false });
+          }
+          return matchup;
+        });
+      }
     },
-    addPlayer(newPlayer){
-      this.players = [...this.players, newPlayer];
-      newPlayer.position === 'P' ? this.addPitchingMatchups(newPlayer) : this.addBattingMatchup(newPlayer);
+    addPlayer(player) {
+      this.players = [...this.players, player];
+
+      if (player.position == "P") {
+        this.matchups = this.matchups.map(matchup => {
+          if (matchup.pitcher.id === player.player_id) {
+            return Object.assign({}, matchup, { myPitcher: true });
+          }
+          return matchup;
+        });
+      } else {
+        this.matchups = this.matchups.map(matchup => {
+          if (matchup.batter.id === player.player_id) {
+            return Object.assign({}, matchup, { myBatter: true });
+          }
+          return matchup;
+        });
+      }
     },
-    addPitchingMatchups(pitcher){
-      this.pitchers = [...this.pitchers, pitcher];
-    },
-    addBattingMatchup(batter){
-      this.batters = [...this.batters, batter];
+    addMatchup(batter, pitcher) {
+      const params = {
+        params: {
+          stats: "vsTeam",
+          group: "pitching",
+          opposingPlayerId: batter.id
+        }
+      };
+      const pitcherVsBatterUrl = `${mlbApiBaseRoute}${pitcher.link}/stats`;
 
-      var batterGame = this.games.find(function(game) { 
-        return game.teams.away.team.id === batter.team_id || game.teams.home.team.id === batter.team_id; 
-      });
-
-      var opposingPitcher = this.probableStarters.find(function(starter) {
-        return starter.currentTeam.id !== batter.team_id 
-        && (starter.currentTeam.id === batterGame.teams.home.team.id || starter.currentTeam.id === batterGame.teams.away.team.id);
-      });
-
-      if (batterGame !== undefined){
-        if (opposingPitcher !== undefined){
-
-          const pitcherVsBatterUrl = `https://statsapi.mlb.com/api/v1/people/${opposingPitcher.id}/stats`;
-          const params = { params: { stats: 'vsTeam', group: 'pitching', opposingPlayerId: batter.player_id } };
-        
-          Axios.get(pitcherVsBatterUrl, params)
-          .then((response) => {
-            if (response.data.stats.length > 0){
-              // eslint-disable-next-line no-console
-              let matchup = {}
-              matchup.batter = batter;
-              matchup.pitcher = opposingPitcher;
-              matchup.matchup = response.data.stats.find(stat => stat.type.displayName === 'vsTeamTotal').splits[0].stat;
-              matchup.pitcher.currentTeam.team_abbrev = this.teams.find(team => team.id === opposingPitcher.currentTeam.id).abbreviation;
-              this.batterMatchups.push(matchup);
-            }
-            else {
-              //should push something here in a bit
-              // eslint-disable-next-line no-console
-              console.log(`${batter.name_display_first_last} doesn't have any batting history against ${opposingPitcher.firstLastName}`);
-            }
-          })
-          .catch((error) => {
+      Axios.get(pitcherVsBatterUrl, params)
+        .then(response => {
+          if (response.data.stats.length > 0) {
+            let matchup = {};
+            matchup.batter = batter;
+            matchup.pitcher = pitcher;
+            matchup.matchup = response.data.stats.find(
+              stat => stat.type.displayName === "vsTeamTotal"
+            ).splits[0].stat;
+            matchup.myBatter = false;
+            matchup.myPitcher = false;
+            this.matchups.push(matchup);
+          } else {
+            //should push something here in a bit
             // eslint-disable-next-line no-console
-            console.log(error);
-          });
-        }
-        else{
-          // eslint-disable-next-line no-console
-          console.log(`${batter.name_display_first_last}'s game is found at https://statsapi.mlb.com${batterGame.link} but probable pitching is unknown or I have a bug.`);
-        }
-      }
-      else{
-        // eslint-disable-next-line no-console
-        console.log(`${batter.name_display_first_last} doesn't seem to be playing today, or I have a bug.`);
-      }
-    },
-    addProbablePitcher(player){
-      
-      // Player by ID - JSON
-      const playerByIdUrl = `https://statsapi.mlb.com${player.link}`;
-      Axios.get(playerByIdUrl, { params: { hydrate: 'currentTeam' } })
-      .then((response) => {
-        this.probableStarters.push(response.data.people[0]);
-      })
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.log(error);
-      });
-    }
-  },
-  created(){
-
-    let date = { params: { date: '09/29/2019' } };
-
-    // 1. Get all teams in the league
-    const mlbTeamsUrl = 'https://statsapi.mlb.com/api/v1/teams/?sportId=1';
-    Axios.get(mlbTeamsUrl)
-    .then((response) => {
-      this.teams = response.data.teams;
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-console
-      console.log(error);
-    });
-
-    // 2. Get all games and then matchups
-    const gamesTodayUrl = 'http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1';
-    Axios.get(gamesTodayUrl, date)
-    .then((response) => {
-      this.games = response.data.dates[0].games;
-
-      // 3. Get probable pitchers for each game
-      var i;
-      for (i = 0; i < this.games.length; i++){
-        let gameInfoWithProbablePitchersUrl = `https://statsapi.mlb.com/api/v1.1/game/${this.games[i].gamePk}/feed/live`;
-        Axios.get(gameInfoWithProbablePitchersUrl)
-        .then((response) => {
-          this.addProbablePitcher(response.data.gameData.probablePitchers.home);
-          this.addProbablePitcher(response.data.gameData.probablePitchers.away);
+            console.log(
+              `${batter.name} doesn't have any batting history against ${pitcher.name}`
+            );
+          }
         })
-        .catch((error) => {
+        .catch(error => {
           // eslint-disable-next-line no-console
           console.log(error);
         });
-      }
-    })
-    .catch((error) => {
-      // eslint-disable-next-line no-console
-      console.log(error);
-    });
+    }
+  },
+  created() {
+    let date = { params: { date: "09/29/2019" } };
+
+    // 1. Get all games for date and then matchups
+    const gamesTodayUrl = `${mlbApiBaseRoute}/api/v1/schedule/games/?sportId=1`;
+    Axios.get(gamesTodayUrl, date)
+      .then(response => {
+        let gamesToday = response.data.dates[0].games;
+
+        // 2. Enrich game data for each game
+        var i;
+        for (i = 0; i < gamesToday.length; i++) {
+          let enrichedGameInfoUrl = `${mlbApiBaseRoute}${gamesToday[i].link}`;
+          Axios.get(enrichedGameInfoUrl)
+            .then(response => {
+              let curGame = {
+                id: response.data.gamePk,
+                link: response.data.link,
+                teams: []
+              };
+
+              let homeAndAway = ["home", "away"];
+              var k;
+              for (k = 0; k < homeAndAway.length; k++) {
+                let team = {
+                  id: response.data.gameData.teams[homeAndAway[k]].id,
+                  name: response.data.gameData.teams[homeAndAway[k]].name,
+                  link: response.data.gameData.teams[homeAndAway[k]].link,
+                  abbreviation:
+                    response.data.gameData.teams[homeAndAway[k]].abbreviation,
+                  homeAway: homeAndAway[k],
+                  starter: {
+                    id:
+                      response.data.gameData.probablePitchers[homeAndAway[k]]
+                        .id,
+                    link:
+                      response.data.gameData.probablePitchers[homeAndAway[k]]
+                        .link,
+                    name:
+                      response.data.gameData.probablePitchers[homeAndAway[k]]
+                        .fullName
+                  },
+                  batters: []
+                };
+                curGame.teams = [...curGame.teams, team];
+              }
+
+              this.games.push(curGame);
+              return curGame;
+            })
+            .then(curGame => {
+              var teamNum;
+              for (teamNum = 0; teamNum < curGame.teams.length; teamNum++) {
+                const rosterUrl = `${mlbApiBaseRoute}${curGame.teams[teamNum].link}/roster`;
+
+                Axios.get(rosterUrl).then(response => {
+                  const curRosterTeamId = response.data.teamId;
+                  const curTeam = this.games
+                    .find(game =>
+                      game.teams.some(team => team.id === curRosterTeamId)
+                    )
+                    .teams.find(team => team.id === curRosterTeamId);
+
+                  response.data.roster.forEach(person => {
+                    let batter = {
+                      id: person.person.id,
+                      name: person.person.fullName,
+                      link: person.person.link,
+                      position: person.position.abbreviation,
+                      team: curTeam
+                    };
+
+                    // TODO: Delete this and just enrich in matchup
+                    this.games
+                      .find(game =>
+                        game.teams.some(team => team.id === curRosterTeamId)
+                      )
+                      .teams.find(
+                        team => team.id === curRosterTeamId
+                      ).starter.team = curTeam;
+
+                    this.games
+                      .find(game =>
+                        game.teams.some(team => team.id === curRosterTeamId)
+                      )
+                      .teams.find(
+                        team => team.id === curRosterTeamId
+                      ).batters = [
+                      ...this.games
+                        .find(game =>
+                          game.teams.some(team => team.id === curRosterTeamId)
+                        )
+                        .teams.find(team => team.id === curRosterTeamId)
+                        .batters,
+                      batter
+                    ];
+                    // eslint-disable-next-line no-console
+                    console.log('There should be 40 * 30 of these -- 1200, I believe');
+                    this.addMatchup(
+                      batter,
+                      this.games
+                        .find(game =>
+                          game.teams.some(team => team.id === curRosterTeamId)
+                        )
+                        .teams.find(team => team.id !== curRosterTeamId)
+                        .starter
+                    );
+                  });
+                });
+              }
+            })
+            .catch(error => {
+              // eslint-disable-next-line no-console
+              console.log(error);
+            });
+        }
+      })
+      .catch(error => {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      });
   }
-}
+};
 </script>
 
 <style>

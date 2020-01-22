@@ -4,8 +4,8 @@
         <table style="width:100%">
           <thead>
             <tr>
-              <th class="heading" @click="sort('batter.name_display_first_last')">Name</th>
-              <th class="heading" @click="sort('pitcher.firstLastName')">Pitcher</th>
+              <th class="heading" @click="sort('batter.name')">Name</th>
+              <th class="heading" @click="sort('pitcher.name')">Pitcher</th>
               <th class="heading" @click="sort('matchup.hits')">H/AB</th>
               <th class="heading" @click="sort('matchup.runs')">R</th>
               <th class="heading" @click="sort('matchup.homeRuns')">HR</th>
@@ -16,9 +16,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-bind:key="matchup.batter_id" v-for="matchup in sortedMatchups">
-              <td>{{matchup.batter.name_display_first_last}} <span class="batterPosition">({{matchup.batter.position}})</span> <span class="batterTeam">{{matchup.batter.team_abbrev}}</span></td>
-              <td>{{matchup.pitcher.firstLastName}} <span class="pitcherTeam">{{matchup.pitcher.currentTeam.team_abbrev}}</span></td>
+            <tr v-bind:key="matchup.batter.id" v-for="matchup in sortedMatchups">
+              <td>{{matchup.batter.name}} <span class="batterPosition">({{matchup.batter.position}})</span> <span class="batterTeam">{{matchup.batter.team.abbreviation}}</span></td>
+              <td>{{matchup.pitcher.name}} <span class="pitcherTeam">{{matchup.pitcher.team.abbreviation}}</span></td>
               <td>{{matchup.matchup.hits}}/{{matchup.matchup.atBats}} </td>
               <td>{{matchup.matchup.runs}}</td>
               <td>{{matchup.matchup.homeRuns}}</td>
@@ -36,7 +36,7 @@
 
 export default {
     name: "BatterMatchups",
-    props: ["batterMatchups"],
+    props: ["matchups"],
     data() {
       return {
         sortField: 'matchup.ops',
@@ -55,7 +55,7 @@ export default {
     },
     computed:{
       sortedMatchups: function(){
-        return this.batterMatchups.slice().sort((a,b) => {
+        return this.matchups.filter(matchup => matchup.myBatter).slice().sort((a,b) => {
 
           let prop = this.sortField.split('.');
           var len = prop.length;

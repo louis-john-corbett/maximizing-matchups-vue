@@ -1,6 +1,6 @@
 <template>
-    <div class="pitcherMatchups">
-        <h1 id="pitchers-header"> Pitcher Matchups </h1>
+    <div class="otherMatchups">
+        <h1 id="others-header"> Other Matchups </h1>
         <table style="width:100%">
           <thead>
             <tr>
@@ -35,7 +35,7 @@
 <script>
 
 export default {
-    name: "PitcherMatchups",
+    name: "OtherMatchups",
     props: ["matchups"],
     data() {
       return {
@@ -55,7 +55,7 @@ export default {
     },
     computed:{
       sortedMatchups: function(){
-        return this.matchups.filter(matchup => matchup.myPitcher).slice().sort((a,b) => {
+        return this.matchups.filter(matchup => !matchup.myPitcher && !matchup.myBatter).slice().sort((a,b) => {
 
           let prop = this.sortField.split('.');
           var len = prop.length;

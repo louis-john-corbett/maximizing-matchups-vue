@@ -2,7 +2,7 @@
     <div class="players">
         <h1 id="players-header"> Players </h1>
         <div v-bind:key="player.player_id" v-for="player in players">
-            <Player v-bind:player="player" v-on:del-player="$emit('del-player', player.player_id)"/>
+            <Player v-bind:player="player" v-on:del-player="$emit('del-player', player)"/>
         </div>
     </div>
 </template>

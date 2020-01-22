@@ -51,7 +51,7 @@ export default {
     return {
       // The source url
       // (required)
-      src: "http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?sport_code='mlb'&active_sw='Y'",
+      src: "https://lookup-service-prod.mlb.com/json/named.search_player_all.bam?sport_code='mlb'&active_sw='Y'",
 
       // The data that would be sent by request
       // (optional)
