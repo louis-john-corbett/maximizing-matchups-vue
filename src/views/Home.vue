@@ -96,12 +96,6 @@ export default {
             matchup.myBatter = false;
             matchup.myPitcher = false;
             this.matchups.push(matchup);
-          } else {
-            //should push something here in a bit
-            // eslint-disable-next-line no-console
-            console.log(
-              `${batter.name} doesn't have any batting history against ${pitcher.name}`
-            );
           }
         })
         .catch(error => {
@@ -206,8 +200,6 @@ export default {
                         .batters,
                       batter
                     ];
-                    // eslint-disable-next-line no-console
-                    console.log('There should be 40 * 30 of these -- 1200, I believe');
                     this.addMatchup(
                       batter,
                       this.games

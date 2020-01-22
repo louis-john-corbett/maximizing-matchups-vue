@@ -44,9 +44,6 @@ export default {
   extends: VueTypeahead,
   props: ["players"],
 
-  //// Player by ID - JSON
-  //// const playerByIdUrl = 'https://statsapi.mlb.com/api/v1/people/';
-
   data () {
     return {
       // The source url
