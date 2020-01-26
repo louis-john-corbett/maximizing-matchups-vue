@@ -17,8 +17,8 @@
           </thead>
           <tbody>
             <tr v-bind:key="matchup.batter.id" v-for="matchup in sortedMatchups">
-              <td>{{matchup.batter.name}} <span class="batterPosition">({{matchup.batter.position}})</span> <span class="batterTeam">{{matchup.batter.team.abbreviation}}</span></td>
-              <td>{{matchup.pitcher.name}} <span class="pitcherTeam">{{matchup.pitcher.team.abbreviation}}</span></td>
+              <td>{{matchup.batter.name}} <span class="batterPosition">({{matchup.batter.position}})</span> <span class="batterTeam">{{matchup.batter.teamAbbreviation}}</span></td>
+              <td>{{matchup.pitcher.name}} <span class="pitcherTeam">{{matchup.pitcher.teamAbbreviation}}</span></td>
               <td>{{matchup.matchup.hits}}/{{matchup.matchup.atBats}} </td>
               <td>{{matchup.matchup.runs}}</td>
               <td>{{matchup.matchup.homeRuns}}</td>

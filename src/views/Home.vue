@@ -161,11 +161,9 @@ export default {
 
                 Axios.get(rosterUrl).then(response => {
                   const curRosterTeamId = response.data.teamId;
-                  const curTeam = this.games
-                    .find(game =>
-                      game.teams.some(team => team.id === curRosterTeamId)
-                    )
-                    .teams.find(team => team.id === curRosterTeamId);
+                  const batterTeamAbbreviation = curGame.teams.find(team => team.id === curRosterTeamId).abbreviation;
+                  let starter = curGame.teams.find(team => team.id !== curRosterTeamId).starter;
+                  starter.teamAbbreviation = curGame.teams.find(team => team.id !== curRosterTeamId).abbreviation;
 
                   response.data.roster.forEach(person => {
                     let batter = {
@@ -173,42 +171,11 @@ export default {
                       name: person.person.fullName,
                       link: person.person.link,
                       position: person.position.abbreviation,
-                      team: curTeam
+                      teamAbbreviation: batterTeamAbbreviation,
+                      alternateTeamAbbreviation: batterTeamAbbreviation
                     };
 
-                    // TODO: Delete this and just enrich in matchup
-                    this.games
-                      .find(game =>
-                        game.teams.some(team => team.id === curRosterTeamId)
-                      )
-                      .teams.find(
-                        team => team.id === curRosterTeamId
-                      ).starter.team = curTeam;
-
-                    this.games
-                      .find(game =>
-                        game.teams.some(team => team.id === curRosterTeamId)
-                      )
-                      .teams.find(
-                        team => team.id === curRosterTeamId
-                      ).batters = [
-                      ...this.games
-                        .find(game =>
-                          game.teams.some(team => team.id === curRosterTeamId)
-                        )
-                        .teams.find(team => team.id === curRosterTeamId)
-                        .batters,
-                      batter
-                    ];
-                    this.addMatchup(
-                      batter,
-                      this.games
-                        .find(game =>
-                          game.teams.some(team => team.id === curRosterTeamId)
-                        )
-                        .teams.find(team => team.id !== curRosterTeamId)
-                        .starter
-                    );
+                    this.addMatchup(batter, starter);
                   });
                 });
               }
