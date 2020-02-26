@@ -1,6 +1,6 @@
 <template>
-    <div class="pitcherMatchups">
-        <h1 id="pitchers-header"> Pitcher Matchups </h1>
+    <div class="matchupGrid">
+        <h1 id="matchup-header"> {{title}} </h1>
         <table style="width:100%">
           <thead>
             <tr>
@@ -16,9 +16,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-bind:key="matchup.batter.id" v-for="matchup in sortedMatchups">
-              <td>{{matchup.batter.name}} <span class="batterPosition">({{matchup.batter.position}})</span> <span class="batterTeam">{{matchup.batter.team.abbreviation}}</span></td>
-              <td>{{matchup.pitcher.name}} <span class="pitcherTeam">{{matchup.pitcher.team.abbreviation}}</span></td>
+            <tr :key="`${matchup.batter.id}-${matchup.pitcher.id}`" v-for="matchup in sortedMatchups">
+              <td>{{matchup.batter.name}} <span class="batterPosition">({{matchup.batter.position}})</span> <span class="batterTeam">{{matchup.batter.teamAbbreviation}}</span></td>
+              <td>{{matchup.pitcher.name}} <span class="pitcherTeam">{{matchup.pitcher.teamAbbreviation}}</span></td>
               <td>{{matchup.matchup.hits}}/{{matchup.matchup.atBats}} </td>
               <td>{{matchup.matchup.runs}}</td>
               <td>{{matchup.matchup.homeRuns}}</td>
@@ -35,8 +35,8 @@
 <script>
 
 export default {
-    name: "PitcherMatchups",
-    props: ["matchups"],
+    name: "BatterMatchups",
+    props: ["matchups", "title"],
     data() {
       return {
         sortField: 'matchup.ops',
@@ -55,7 +55,7 @@ export default {
     },
     computed:{
       sortedMatchups: function(){
-        return this.matchups.filter(matchup => matchup.myPitcher).slice().sort((a,b) => {
+        return this.matchups.slice().sort((a,b) => {
 
           let prop = this.sortField.split('.');
           var len = prop.length;

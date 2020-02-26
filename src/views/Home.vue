@@ -1,10 +1,10 @@
 <template>
   <div class="home">
     <PlayerSearch v-bind:players="players" v-on:add-player="addPlayer" />
-    <BatterMatchups v-bind:matchups="matchups" />
-    <PitcherMatchups v-bind:matchups="matchups" />
+    <MatchupGrid v-bind:matchups="batterMatchups" title="Batter Matchups"/>
+    <MatchupGrid v-bind:matchups="pitcherMatchups" title="Pitcher Matchups"/>
     <PlayerList v-bind:players="players" v-on:del-player="deletePlayer" />
-    <OtherMatchups v-bind:matchups="matchups" />
+    <MatchupGrid v-bind:matchups="matchups" title="Other Matchups"/>
   </div>
 </template>
 
@@ -12,9 +12,7 @@
 // @ is an alias to /src
 import PlayerSearch from "@/components/PlayerSearch.vue";
 import PlayerList from "@/components/PlayerList.vue";
-import BatterMatchups from "@/components/BatterMatchups.vue";
-import PitcherMatchups from "@/components/PitcherMatchups.vue";
-import OtherMatchups from "@/components/OtherMatchups.vue";
+import MatchupGrid from "@/components/MatchupGrid.vue";
 import Axios from "axios";
 
 const mlbApiBaseRoute = "https://statsapi.mlb.com";
@@ -24,15 +22,15 @@ export default {
   components: {
     PlayerSearch,
     PlayerList,
-    BatterMatchups,
-    PitcherMatchups,
-    OtherMatchups
+    MatchupGrid
   },
   data() {
     return {
       games: [],
       players: [],
-      matchups: []
+      matchups: [],
+      batterMatchups: [],
+      pitcherMatchups: []
     };
   },
   methods: {
@@ -40,38 +38,22 @@ export default {
       this.players = this.players.filter(p => p.player_id !== player.player_id);
 
       if (player.position == "P") {
-        this.matchups = this.matchups.map(matchup => {
-          if (matchup.pitcher.id === player.player_id) {
-            return Object.assign({}, matchup, { myPitcher: false });
-          }
-          return matchup;
-        });
+        this.matchups = [...this.matchups, ...this.pitcherMatchups.filter(m => m.pitcher.id === player.player_id)];
+        this.pitcherMatchups = this.pitcherMatchups.filter(m => m.pitcher.id !== player.player_id);
       } else {
-        this.matchups = this.matchups.map(matchup => {
-          if (matchup.batter.id === player.player_id) {
-            return Object.assign({}, matchup, { myBatter: false });
-          }
-          return matchup;
-        });
+        this.matchups = [...this.matchups, ...this.batterMatchups.filter(m => m.batter.id === player.player_id)];
+        this.batterMatchups = this.batterMatchups.filter(m => m.batter.id !== player.player_id);
       }
     },
     addPlayer(player) {
       this.players = [...this.players, player];
 
       if (player.position == "P") {
-        this.matchups = this.matchups.map(matchup => {
-          if (matchup.pitcher.id === player.player_id) {
-            return Object.assign({}, matchup, { myPitcher: true });
-          }
-          return matchup;
-        });
+        this.pitcherMatchups = [...this.pitcherMatchups, ...this.matchups.filter(m => m.pitcher.id === player.player_id)];
+        this.matchups = this.matchups.filter(m => m.pitcher.id !== player.player_id);
       } else {
-        this.matchups = this.matchups.map(matchup => {
-          if (matchup.batter.id === player.player_id) {
-            return Object.assign({}, matchup, { myBatter: true });
-          }
-          return matchup;
-        });
+        this.batterMatchups = [...this.batterMatchups, ...this.matchups.filter(m => m.batter.id === player.player_id)];
+        this.matchups = this.matchups.filter(m => m.batter.id !== player.player_id);
       }
     },
     addMatchup(batter, pitcher) {
@@ -105,7 +87,8 @@ export default {
     }
   },
   created() {
-    let date = { params: { date: "09/29/2019" } };
+    //let date = { params: { date: "09/29/2019" } };
+    let date = { params: { date: "02/26/2020" } };
 
     // 1. Get all games for date and then matchups
     const gamesTodayUrl = `${mlbApiBaseRoute}/api/v1/schedule/games/?sportId=1`;
