@@ -7,13 +7,13 @@
               <th class="heading" @click="sort('batter.name')">Name</th>
               <th class="heading" @click="sort('pitcher.name')">Pitcher</th>
               <th class="heading" @click="sort('matchup.hits')">H/AB</th>
-              <th class="heading" @click="sort('matchup.singles')">1B</th>
               <th class="heading" @click="sort('matchup.doubles')">2B</th>
               <th class="heading" @click="sort('matchup.triples')">3B</th>
               <th class="heading" @click="sort('matchup.homeRuns')">HR</th>
               <th class="heading" @click="sort('matchup.rbi')">RBI</th>
               <th class="heading" @click="sort('matchup.avg')">AVG</th>
               <th class="heading" @click="sort('matchup.ops')">OPS</th>
+              <th class="heading" @click="sort('matchup.totalBases')">Bases</th>
               <th class="heading" @click="sort('matchup.strikeOuts')">Ks</th>
               <th class="heading" @click="sort('matchup.matchup.matchup.strikePercentage')">Strike:Ball</th>
             </tr>
@@ -23,13 +23,13 @@
               <td>{{matchup.batter.name}} <span class="batterPosition">({{matchup.batter.position}})</span> <span class="batterTeam">{{matchup.batter.teamAbbreviation}}</span></td>
               <td>{{matchup.pitcher.name}} <span class="pitcherTeam">{{matchup.pitcher.teamAbbreviation}}</span></td>
               <td>{{matchup.matchup.hits}}/{{matchup.matchup.atBats}} </td>
-              <td>{{matchup.matchup.singles}}</td>
               <td>{{matchup.matchup.doubles}}</td>
               <td>{{matchup.matchup.triples}}</td>
               <td>{{matchup.matchup.homeRuns}}</td>
               <td>{{matchup.matchup.rbi}}</td>
               <td>{{matchup.matchup.avg}}</td>
               <td>{{matchup.matchup.ops}}</td>
+              <td>{{matchup.matchup.totalBases}}</td>
               <td>{{matchup.matchup.strikeOuts}}</td>
               <td>{{matchup.matchup.strikes}}:{{matchup.matchup.balls}} ({{matchup.matchup.strikePercentage}})</td>
             </tr>
