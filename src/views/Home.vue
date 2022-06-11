@@ -87,8 +87,10 @@ export default {
     }
   },
   created() {
-    //let date = { params: { date: "09/29/2019" } };
-    let date = { params: { date: "02/26/2020" } };
+
+    let today = new Date();
+    let dateString = (today.getMonth()+1)+'/'+today.getDate()+'/'+today.getFullYear();
+    let date = { params: { date: dateString } };
 
     // 1. Get all games for date and then matchups
     const gamesTodayUrl = `${mlbApiBaseRoute}/api/v1/schedule/games/?sportId=1`;
